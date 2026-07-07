@@ -19,6 +19,7 @@ class CreateProject(BaseModel):
     device: str | None = None
     model: str | None = None
     max_clips: int | None = Field(default=None, ge=1, le=40)
+    max_minutes: int | None = Field(default=None, ge=1, le=240)
     aspect: str | None = None
     reframe: str | None = None
     caption_preset: str | None = None
@@ -33,6 +34,7 @@ def _resolve_settings(body: CreateProject) -> dict:
         "device": body.device or defaults["device"],
         "model": body.model or defaults["model"],
         "max_clips": body.max_clips or defaults["max_clips"],
+        "max_minutes": body.max_minutes or defaults["max_minutes"],
         "aspect": body.aspect or defaults["aspect"],
         "reframe": body.reframe or defaults["reframe"],
         "caption_preset": body.caption_preset or defaults["caption_preset"],

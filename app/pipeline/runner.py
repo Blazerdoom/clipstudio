@@ -34,7 +34,13 @@ def run_project(project_id: int) -> None:
 
     # 1. Ingest -------------------------------------------------------------
     repo.set_progress(project_id, "downloading", 0.05)
-    video, _title, duration = ingest.fetch(project["source"], media_dir)
+
+    def on_download(frac: float) -> None:
+        repo.set_progress(project_id, "downloading", 0.05 + 0.10 * frac)
+
+    max_minutes = int(settings.get("max_minutes") or 0) or None
+    video, _title, duration = ingest.fetch(project["source"], media_dir,
+                                           max_minutes=max_minutes, on_progress=on_download)
     repo.update_project(project_id, video_path=str(video), duration=duration)
     repo.set_progress(project_id, "transcribing", 0.15)
 

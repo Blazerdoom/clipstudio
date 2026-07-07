@@ -27,6 +27,8 @@ PORT = int(os.environ.get("CLIPSTUDIO_PORT", "8790"))
 DEFAULT_DEVICE = "auto"             # auto | cuda | cpu
 DEFAULT_MODEL = "base"              # tiny | base | small | medium | large-v3
 DEFAULT_MAX_CLIPS = 10
+DEFAULT_MAX_MINUTES = 30   # only analyze the first N minutes of a long video
+MAX_MINUTES_CAP = 240
 DEFAULT_ASPECT = "9:16"
 DEFAULT_REFRAME = "fit"             # fit (blurred bg) | crop (center-crop)
 

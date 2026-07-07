@@ -16,6 +16,7 @@ class SettingsPatch(BaseModel):
     device: str | None = None
     model: str | None = None
     max_clips: int | None = None
+    max_minutes: int | None = None
     aspect: str | None = None
     reframe: str | None = None
     caption_preset: str | None = None

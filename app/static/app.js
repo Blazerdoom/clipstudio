@@ -65,6 +65,7 @@ async function loadOptions() {
   const musicOpts = [{ name: "", label: "None" }, ...tracks];
   fillSelectKV("#opt-music", musicOpts, settings.music || "");
   $("#opt-max").value = settings.max_clips;
+  $("#opt-minutes").value = settings.max_minutes || 30;
   $("#opt-zoom").checked = !!settings.zoom;
   $("#opt-color").checked = !!settings.color;
 }
@@ -82,6 +83,7 @@ async function onCreate(e) {
       device: $("#opt-device").value,
       model: $("#opt-model").value,
       max_clips: Number($("#opt-max").value),
+      max_minutes: Number($("#opt-minutes").value),
       aspect: $("#opt-aspect").value,
       reframe: $("#opt-reframe").value,
       caption_preset: $("#opt-caption").value,

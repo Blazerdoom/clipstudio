@@ -62,6 +62,7 @@ _DEFAULT_SETTINGS: dict[str, Any] = {
     "zoom": False,
     "color": False,
     "music": "",
+    "max_minutes": config.DEFAULT_MAX_MINUTES,
 }
 
 
