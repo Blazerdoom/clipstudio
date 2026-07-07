@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Runtime data (created on first run)
+data/
+*.db
+
+# Secrets / auth (never commit)
+client_secret.json
+youtube_token.json
+
+# User-supplied media
+music/*
+!music/README.txt
+
+# OS
+.DS_Store
+Thumbs.db

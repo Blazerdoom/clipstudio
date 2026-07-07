@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClipStudio — turn long videos into short clips</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◑</span>
+      <div>
+        <h1>ClipStudio</h1>
+        <p class="tagline">One long video &rarr; ranked, captioned shorts. Fully local.</p>
+      </div>
+    </div>
+    <div id="env" class="env" aria-live="polite"></div>
+  </header>
+
+  <main class="layout">
+    <section class="composer" aria-labelledby="composer-heading">
+      <h2 id="composer-heading" class="visually-hidden">New clip project</h2>
+      <form id="create-form" class="composer-form">
+        <div class="composer-row">
+          <input
+            id="source" name="source" type="text" autocomplete="off" required
+            class="source-input"
+            placeholder="Paste a YouTube link  —  or a path to a video file on this PC" />
+          <button type="submit" class="btn-primary" id="generate-btn">
+            <span class="btn-label">Generate clips</span>
+          </button>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced options</summary>
+          <div class="options-grid">
+            <label>Device
+              <select id="opt-device" name="device"></select>
+            </label>
+            <label>Whisper model
+              <select id="opt-model" name="model"></select>
+            </label>
+            <label>Max clips
+              <input id="opt-max" name="max_clips" type="number" min="1" max="40" value="10" />
+            </label>
+            <label>Aspect
+              <select id="opt-aspect" name="aspect"></select>
+            </label>
+            <label>Reframe
+              <select id="opt-reframe" name="reframe"></select>
+            </label>
+            <label>Caption style
+              <select id="opt-caption" name="caption_preset"></select>
+            </label>
+            <label class="check">
+              <input id="opt-zoom" type="checkbox" /> Zoom in (tighter)
+            </label>
+            <label class="check">
+              <input id="opt-color" type="checkbox" /> Color boost
+            </label>
+            <label>Background music
+              <select id="opt-music" name="music"></select>
+            </label>
+          </div>
+        </details>
+      </form>
+    </section>
+
+    <div class="content">
+      <aside class="rail" aria-label="Projects">
+        <div class="rail-head">
+          <h2>Projects</h2>
+          <button id="refresh" class="btn-ghost" title="Refresh">↻</button>
+        </div>
+        <ul id="project-list" class="project-list"></ul>
+      </aside>
+
+      <section id="detail" class="detail" aria-live="polite">
+        <div class="empty-state">
+          <p class="empty-title">No project selected</p>
+          <p class="empty-sub">Paste a link above and hit <strong>Generate clips</strong>.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="edit-modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="edit-h">
+      <div class="modal-head">
+        <h3 id="edit-h">Edit clip</h3>
+        <button class="modal-close" id="edit-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="edit-preview">
+          <video id="edit-video" controls playsinline></video>
+          <p class="edit-hint">Scrub the video, then tap <strong>now</strong> on a line to set its timing.</p>
+        </div>
+        <div class="edit-fields">
+          <label class="field">Title
+            <input id="edit-title" type="text" maxlength="200" autocomplete="off" />
+          </label>
+          <label class="field">Hook
+            <input id="edit-hook" type="text" maxlength="200" autocomplete="off" />
+          </label>
+          <label class="field">Caption style
+            <select id="edit-style"></select>
+          </label>
+          <label class="field">Voice dub
+            <select id="edit-voice"></select>
+          </label>
+          <div class="caps-head">
+            <span>Captions <em>(text · start · end)</em></span>
+            <button id="edit-addline" class="btn-ghost" type="button">+ line</button>
+          </div>
+          <div id="edit-lines" class="edit-lines"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span id="edit-msg" class="edit-msg" aria-live="polite"></span>
+        <div class="modal-actions">
+          <button id="edit-cancel" class="btn-ghost" type="button">Cancel</button>
+          <button id="edit-apply" class="btn-primary" type="button">Apply &amp; re-make</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

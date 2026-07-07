@@ -1,0 +1,6 @@
+# Normalize line endings so scripts work cross-platform.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.mp4 binary
