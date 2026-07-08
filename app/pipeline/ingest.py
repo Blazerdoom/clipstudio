@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from typing import Callable
 
+from ..errors import UserError
+from . import cookies as cookie_src
 from .ffmpeg_tools import probe_duration
 
 ProgressFn = Callable[[float], None]
@@ -27,15 +29,17 @@ def is_url(source: str) -> bool:
 
 
 def fetch(source: str, out_dir: Path, max_minutes: int | None = None,
-          on_progress: ProgressFn | None = None) -> tuple[Path, str, float]:
+          on_progress: ProgressFn | None = None,
+          cookies: str | None = None) -> tuple[Path, str, float]:
     """Resolve *source* to a local video file.
 
     Returns (video_path, title, duration_seconds). For URLs, only the first
-    *max_minutes* are downloaded when given.
+    *max_minutes* are downloaded when given. *cookies* names an auth source
+    (see `pipeline.cookies`) for bot-gated videos.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     if is_url(source):
-        video = _download(source, out_dir, max_minutes, on_progress)
+        video = _download(source, out_dir, max_minutes, on_progress, cookies)
     else:
         video = _local(source)
     return video, video.stem, probe_duration(video)
@@ -51,7 +55,7 @@ def _local(source: str) -> Path:
 
 
 def _download(url: str, out_dir: Path, max_minutes: int | None,
-              on_progress: ProgressFn | None) -> Path:
+              on_progress: ProgressFn | None, cookies: str | None = None) -> Path:
     """Download the first <=max_minutes at <=720p, streaming progress."""
     template = str(out_dir / "%(id)s.%(ext)s")
     cmd = [
@@ -62,6 +66,7 @@ def _download(url: str, out_dir: Path, max_minutes: int | None,
         "-o", template,
         "--print", "after_move:filepath",
     ]
+    cmd += cookie_src.cookies_args(cookies)
     if max_minutes and max_minutes > 0:
         cmd += ["--download-sections", f"*0-{int(max_minutes) * 60}"]
     cmd.append(url)
@@ -85,10 +90,40 @@ def _download(url: str, out_dir: Path, max_minutes: int | None,
 
     if proc.returncode != 0:
         detail = "\n".join(t for t in tail[-8:] if t)
-        raise RuntimeError(f"yt-dlp failed:\n{detail}")
+        raise UserError(_friendly_error(detail, cookies))
     if filepath and Path(filepath).exists():
         return Path(filepath)
     candidates = sorted(out_dir.glob("*.mp4"), key=lambda p: p.stat().st_mtime)
     if not candidates:
-        raise RuntimeError("yt-dlp reported success but no video file was produced.")
+        raise UserError("The download finished but produced no video file. Try again, "
+                        "or paste a local video file path instead.")
     return candidates[-1]
+
+
+def _friendly_error(detail: str, cookies: str | None) -> str:
+    """Turn a raw yt-dlp failure into an actionable, non-technical message."""
+    low = detail.lower()
+    using_cookies = bool(cookie_src.cookies_args(cookies))
+
+    if "could not copy" in low and "cookie" in low:
+        return ("Couldn't read your browser's cookies because the browser is open and "
+                "locking them. Fully close Opera GX, then generate again — or set "
+                "'YouTube login' to 'Cookie file' after exporting a cookies.txt.")
+    if "sign in to confirm" in low or "not a bot" in low or "confirm you" in low:
+        if using_cookies:
+            return ("YouTube still wants sign-in for this video even with your cookies. "
+                    "Make sure you're logged in to YouTube in that browser and the cookies "
+                    "are fresh, or try a different video.")
+        return ("YouTube wants you signed in to prove you're not a bot. Open 'Advanced "
+                "options' and set 'YouTube login' to your browser (Opera GX must be "
+                "closed while generating), or to 'Cookie file' after exporting cookies.txt. "
+                "You can also paste a local video file path instead.")
+    if "429" in low or "too many requests" in low:
+        return ("YouTube rate-limited this connection (too many requests, usually from "
+                "repeated downloads of the same video). Wait ~15-30 minutes and try again, "
+                "try a different video, or paste a local video file path.")
+    if "private video" in low or "video unavailable" in low or "members-only" in low:
+        return "This video is private, unavailable, or members-only, so it can't be downloaded."
+    if "unsupported url" in low or "is not a valid url" in low:
+        return "That doesn't look like a supported video URL. Paste a YouTube link or a local file path."
+    return f"Download failed. Details from yt-dlp:\n{detail}"

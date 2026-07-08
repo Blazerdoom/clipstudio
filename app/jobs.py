@@ -37,10 +37,13 @@ def _run(key: Hashable, work: Callable[[Hashable], None]) -> None:
     # Imported lazily to avoid a circular import at module load time.
     from . import repo
 
+    from .errors import UserError
+
     try:
         work(key)
     except Exception as exc:  # noqa: BLE001 — surface every failure to the UI
-        detail = f"{exc.__class__.__name__}: {exc}"
+        # UserError messages are already user-facing; show them verbatim.
+        detail = str(exc) if isinstance(exc, UserError) else f"{exc.__class__.__name__}: {exc}"
         traceback.print_exc()
         # Only int keys are projects; clip re-renders manage their own status.
         if isinstance(key, int):

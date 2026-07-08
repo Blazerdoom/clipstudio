@@ -40,7 +40,8 @@ def run_project(project_id: int) -> None:
 
     max_minutes = int(settings.get("max_minutes") or 0) or None
     video, _title, duration = ingest.fetch(project["source"], media_dir,
-                                           max_minutes=max_minutes, on_progress=on_download)
+                                           max_minutes=max_minutes, on_progress=on_download,
+                                           cookies=settings.get("cookies"))
     repo.update_project(project_id, video_path=str(video), duration=duration)
     repo.set_progress(project_id, "transcribing", 0.15)
 

@@ -64,10 +64,25 @@ async function loadOptions() {
   fillSelectKV("#opt-caption", state.captionPresets, settings.caption_preset);
   const musicOpts = [{ name: "", label: "None" }, ...tracks];
   fillSelectKV("#opt-music", musicOpts, settings.music || "");
+  fillSelectKV("#opt-cookies", cookieOptions(env), settings.cookies || "none");
   $("#opt-max").value = settings.max_clips;
   $("#opt-minutes").value = settings.max_minutes || 30;
   $("#opt-zoom").checked = !!settings.zoom;
   $("#opt-color").checked = !!settings.color;
+}
+
+function cookieOptions(env) {
+  const st = env.cookies_status || {};
+  const labels = {
+    none: "None (public videos)",
+    file: st.file_available ? "Cookie file (data/cookies.txt)" : "Cookie file (no cookies.txt yet)",
+    opera: st.opera_gx_detected ? "Opera GX (close it while generating)" : "Opera",
+    edge: "Microsoft Edge (close it)",
+    chrome: "Chrome (close it)",
+    brave: "Brave (close it)",
+    firefox: "Firefox (close it)",
+  };
+  return (env.cookie_sources || ["none"]).map((s) => ({ name: s, label: labels[s] || s }));
 }
 
 /* ---------- create ---------- */
@@ -90,6 +105,7 @@ async function onCreate(e) {
       zoom: $("#opt-zoom").checked,
       color: $("#opt-color").checked,
       music: $("#opt-music").value,
+      cookies: $("#opt-cookies").value,
     });
     $("#source").value = "";
     await loadProjects();

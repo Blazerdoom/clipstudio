@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from .. import config, db, jobs, repo
-from ..pipeline import ingest, music, runner
+from ..pipeline import cookies, ingest, music, runner
 from .media import clip_with_urls
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
@@ -26,6 +26,7 @@ class CreateProject(BaseModel):
     zoom: bool | None = None
     color: bool | None = None
     music: str | None = None
+    cookies: str | None = None
 
 
 def _resolve_settings(body: CreateProject) -> dict:
@@ -41,6 +42,7 @@ def _resolve_settings(body: CreateProject) -> dict:
         "zoom": defaults["zoom"] if body.zoom is None else bool(body.zoom),
         "color": defaults["color"] if body.color is None else bool(body.color),
         "music": defaults["music"] if body.music is None else body.music,
+        "cookies": body.cookies or defaults.get("cookies", "none"),
     }
     _validate(chosen)
     return chosen
@@ -59,6 +61,8 @@ def _validate(s: dict) -> None:
         raise HTTPException(422, f"caption_preset must be one of {config.CAPTION_PRESET_NAMES}")
     if not music.is_valid(s["music"]):
         raise HTTPException(422, "music track not found in the music/ folder")
+    if not cookies.is_valid(s["cookies"]):
+        raise HTTPException(422, f"cookies must be one of {cookies.SOURCES}")
 
 
 @router.post("")

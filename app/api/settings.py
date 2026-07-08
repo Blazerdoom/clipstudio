@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from .. import config, db
-from ..pipeline import music
+from ..pipeline import cookies, music
 from ..pipeline.dub import VOICES as DUB_VOICES
 from ..pipeline.ffmpeg_tools import is_available as ffmpeg_available
 
@@ -23,6 +23,7 @@ class SettingsPatch(BaseModel):
     zoom: bool | None = None
     color: bool | None = None
     music: str | None = None
+    cookies: str | None = None
 
 
 @router.get("/settings")
@@ -50,6 +51,11 @@ def list_music() -> list[dict]:
     return music.list_tracks()
 
 
+@router.get("/cookies")
+def cookies_status() -> dict:
+    return cookies.status()
+
+
 @router.get("/env")
 def get_env() -> dict:
     cuda = _cuda_devices()
@@ -67,4 +73,6 @@ def get_env() -> dict:
             for name, preset in config.CAPTION_PRESETS.items()
         ],
         "dub_voices": DUB_VOICES,
+        "cookie_sources": cookies.SOURCES,
+        "cookies_status": cookies.status(),
     }

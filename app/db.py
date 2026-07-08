@@ -63,6 +63,7 @@ _DEFAULT_SETTINGS: dict[str, Any] = {
     "color": False,
     "music": "",
     "max_minutes": config.DEFAULT_MAX_MINUTES,
+    "cookies": "none",  # YouTube auth source; see pipeline.cookies.SOURCES
 }
 
 

@@ -37,7 +37,9 @@ Progress budget: download .05→.15 · transcribe .15→.60 · score →.65 · r
 | `app/db.py` | SQLite schema + connection + global settings | `init_db()`, `connect()`, `get_settings()`, `save_settings()` |
 | `app/repo.py` | project/clip CRUD | `create_project`, `get_project`, `set_progress`, `insert_clip`, `update_clip` |
 | `app/jobs.py` | in-process background job runner (1 thread/project) | `start()`, `is_running()` |
-| `app/pipeline/ingest.py` | acquire source | `fetch()`, `is_url()` |
+| `app/pipeline/ingest.py` | acquire source; friendly yt-dlp errors | `fetch(...,cookies)`, `is_url()`, `_friendly_error()` |
+| `app/pipeline/cookies.py` | YouTube auth sources for yt-dlp | `SOURCES`, `cookies_args()`, `status()`, `_opera_gx_profile()`, `COOKIE_FILE` |
+| `app/errors.py` | user-facing exception (shown verbatim) | `UserError` |
 | `app/pipeline/transcribe.py` | speech→text, GPU/CPU + model choice | `transcribe()` |
 | `app/pipeline/brain.py` | local virality scoring + titles/hooks/tags | `select_clips()`, `score_window()`, `make_title/hook/tags` |
 | `app/pipeline/wordbanks.py` | lexical signal sets (data only) | `HOOK_WORDS`, `EMOTION_WORDS`, `STOPWORDS` |
@@ -71,6 +73,7 @@ Progress budget: download .05→.15 · transcribe .15→.60 · score →.65 · r
 - **effects**: `zoom` (static 1.08x tighter crop — NOT time-animated: ffmpeg crop w/h eval once) + `color` (eq saturation/contrast). Project-level bools.
 - **voice** (per-clip): edge-tts dub; synthesized from caption text, swapped as audio in `render_clip(dub_audio=)`. Needs internet.
 - **music** (project): filename from top-level `music/` folder (`pipeline/music.py`), looped + ducked (~0.18 vol) under audio via `export._audio_plan`. `GET /api/music` lists tracks; None = off.
+- **cookies** (project, YouTube auth): `none | file | opera | edge | chrome | brave | firefox` (`pipeline/cookies.py`). `cookies_args()` → `--cookies data/cookies.txt` (file) or `--cookies-from-browser <b>` (browser; Opera GX profile path auto-resolved). Browser DBs are OS-locked while the browser runs → user must close it (no ABE on this machine, DPAPI decrypts fine). `file` works while browser open. Surfaced in Advanced dropdown; `GET /api/cookies` + `/api/env.cookie_sources/cookies_status`.
 - Clip columns added over time: `captions`, `caption_preset`, `voice` (see db.py migration list).
 
 ## Contracts / invariants
