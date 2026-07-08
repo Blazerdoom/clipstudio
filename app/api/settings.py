@@ -1,10 +1,11 @@
 """Settings + environment endpoints (global defaults, doctor info)."""
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from .. import config, db
+from ..errors import UserError
 from ..pipeline import cookies, music
 from ..pipeline.dub import VOICES as DUB_VOICES
 from ..pipeline.ffmpeg_tools import is_available as ffmpeg_available
@@ -54,6 +55,22 @@ def list_music() -> list[dict]:
 @router.get("/cookies")
 def cookies_status() -> dict:
     return cookies.status()
+
+
+class CookieImport(BaseModel):
+    source: str
+
+
+@router.post("/cookies/import")
+def import_cookies(body: CookieImport) -> dict:
+    """Export the chosen browser's cookies into data/cookies.txt (browser must be closed)."""
+    try:
+        count = cookies.export_from_browser(body.source)
+    except UserError as exc:
+        raise HTTPException(400, str(exc))
+    # Make future generations use the file automatically (browser can stay open now).
+    db.save_settings({"cookies": "file"})
+    return {"imported": count, "file_available": cookies.file_available(), "cookies": "file"}
 
 
 @router.get("/env")

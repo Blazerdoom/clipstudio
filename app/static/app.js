@@ -23,6 +23,28 @@ async function boot() {
   $("#edit-apply").addEventListener("click", applyEdit);
   $("#edit-addline").addEventListener("click", addLine);
   $("#edit-modal").addEventListener("click", (e) => { if (e.target.id === "edit-modal") closeEditor(); });
+  $("#import-cookies").addEventListener("click", importCookies);
+}
+
+async function importCookies() {
+  const src = $("#opt-import-src").value;
+  const btn = $("#import-cookies");
+  const msg = $("#import-msg");
+  btn.disabled = true;
+  msg.className = "import-msg";
+  msg.textContent = `Importing from ${src} — make sure it's fully closed...`;
+  try {
+    const res = await api.post("/api/cookies/import", { source: src });
+    msg.classList.add("ok");
+    msg.textContent = `Saved ${res.imported} cookies. YouTube links will work now — reopen your browser and paste a URL.`;
+    await loadOptions();               // refresh dropdown -> "Cookie file" now selectable + selected
+    $("#opt-cookies").value = "file";
+  } catch (err) {
+    msg.classList.add("bad");
+    msg.textContent = err.message;
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function loadEnv() {

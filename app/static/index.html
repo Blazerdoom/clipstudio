@@ -68,14 +68,27 @@
             <label>YouTube login
               <select id="opt-cookies" name="cookies"></select>
             </label>
+            <label>Import login (one time)
+              <div class="import-row">
+                <select id="opt-import-src">
+                  <option value="opera">Opera GX</option>
+                  <option value="edge">Edge</option>
+                  <option value="chrome">Chrome</option>
+                  <option value="brave">Brave</option>
+                  <option value="firefox">Firefox</option>
+                </select>
+                <button type="button" id="import-cookies" class="btn-ghost">Import</button>
+              </div>
+            </label>
           </div>
           <p class="advanced-note">
-            If YouTube asks to &ldquo;confirm you&rsquo;re not a bot&rdquo;, set
-            <strong>YouTube login</strong> to your browser and fully close it while
-            generating &mdash; or pick <strong>Cookie file</strong> after saving a
-            <code>cookies.txt</code> into the <code>data/</code> folder. Local video
-            file paths never need this.
+            YouTube now asks you to &ldquo;confirm you&rsquo;re not a bot&rdquo; for most
+            videos. To fix it once: <strong>fully close Opera GX</strong> (also check the
+            system tray), pick it above and click <strong>Import</strong>. Your login is
+            saved to <code>data/cookies.txt</code> &mdash; then reopen Opera GX and every
+            URL will just work for weeks. <em>Local video file paths never need this.</em>
           </p>
+          <p id="import-msg" class="import-msg" aria-live="polite"></p>
         </details>
       </form>
     </section>

@@ -6,12 +6,14 @@ For long videos, only the first `max_minutes` are downloaded (yt-dlp
 """
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 from typing import Callable
 
+from .. import config
 from ..errors import UserError
 from . import cookies as cookie_src
 from .ffmpeg_tools import probe_duration
@@ -72,7 +74,7 @@ def _download(url: str, out_dir: Path, max_minutes: int | None,
     cmd.append(url)
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            text=True, bufsize=1)
+                            text=True, bufsize=1, env=_env_with_deno())
     filepath: str | None = None
     tail: list[str] = []
     for line in proc.stdout or []:
@@ -98,6 +100,15 @@ def _download(url: str, out_dir: Path, max_minutes: int | None,
         raise UserError("The download finished but produced no video file. Try again, "
                         "or paste a local video file path instead.")
     return candidates[-1]
+
+
+def _env_with_deno() -> dict:
+    """PATH-prepend the bundled Deno so yt-dlp can solve YouTube JS challenges."""
+    env = os.environ.copy()
+    tools = config.ROOT / "tools"
+    if tools.is_dir():
+        env["PATH"] = str(tools) + os.pathsep + env.get("PATH", "")
+    return env
 
 
 def _friendly_error(detail: str, cookies: str | None) -> str:

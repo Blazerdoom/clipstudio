@@ -18,6 +18,7 @@ import os
 from pathlib import Path
 
 from .. import config
+from ..errors import UserError
 
 # Selectable sources surfaced in the UI. "none" = no auth.
 SOURCES = ["none", "file", "opera", "edge", "chrome", "brave", "firefox"]
@@ -57,6 +58,56 @@ def cookies_args(source: str | None) -> list[str]:
         return ["--cookies-from-browser", f"opera:{gx}" if gx else "opera"]
     # Standard Chromium/Firefox browsers yt-dlp locates on its own.
     return ["--cookies-from-browser", source]
+
+
+def _browser_and_profile(source: str) -> tuple[str, str | None]:
+    if source == "opera":
+        return "opera", _opera_gx_profile()
+    return source, None
+
+
+class _QuietLog:
+    def debug(self, m): pass
+    def info(self, m): pass
+    def warning(self, m): pass
+    def error(self, m): pass
+
+
+def export_from_browser(source: str) -> int:
+    """Extract a browser's cookies into `data/cookies.txt` (Netscape format).
+
+    The browser must be CLOSED — it holds an exclusive lock on its cookie DB
+    while running. Returns the number of cookies written. Raises `UserError`
+    with plain guidance on any failure.
+    """
+    source = (source or "").lower()
+    if source in ("", "none", "file"):
+        raise UserError("Pick a browser (e.g. Opera GX) to import your YouTube login from.")
+
+    from yt_dlp.cookies import extract_cookies_from_browser
+
+    browser, profile = _browser_and_profile(source)
+    try:
+        jar = extract_cookies_from_browser(browser, profile=profile, logger=_QuietLog())
+    except Exception as exc:  # noqa: BLE001 — map to friendly guidance
+        msg = str(exc).lower()
+        if "could not copy" in msg or "locked" in msg or "being used" in msg or "permission" in msg:
+            raise UserError(
+                f"Couldn't read {source.title()}'s cookies because it's still open. Fully quit "
+                f"{source.title()} (also check the Windows system tray — Opera GX often keeps "
+                "running there), then import again."
+            ) from exc
+        raise UserError(f"Couldn't read {source} cookies: {exc}") from exc
+
+    count = len(jar)
+    if count == 0:
+        raise UserError(
+            f"No cookies found in {source.title()}. Open {source.title()}, sign in to YouTube, "
+            "then import again."
+        )
+    COOKIE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    jar.save(str(COOKIE_FILE), ignore_discard=True, ignore_expires=True)
+    return count
 
 
 def status() -> dict:

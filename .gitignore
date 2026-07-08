@@ -23,3 +23,6 @@ Thumbs.db
 # runtime logs
 server.log
 server.err.log
+
+# bundled Deno JS runtime (downloaded locally, ~100MB)
+tools/
