@@ -19,3 +19,7 @@ music/*
 # OS
 .DS_Store
 Thumbs.db
+
+# runtime logs
+server.log
+server.err.log
