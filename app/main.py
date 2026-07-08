@@ -42,11 +42,32 @@ def _mount_static() -> None:
 _mount_static()
 
 
+def _lan_ip() -> str | None:
+    """Best-effort LAN IPv4 of this machine (no traffic actually sent)."""
+    import socket
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        sock.connect(("8.8.8.8", 80))  # picks the interface with a default route
+        return sock.getsockname()[0]
+    except OSError:
+        return None
+    finally:
+        sock.close()
+
+
 def main() -> None:
     import uvicorn
 
     db.init_db()
-    print(f"\n  {config.APP_NAME} running at http://{config.HOST}:{config.PORT}\n")
+    print(f"\n  {config.APP_NAME} running")
+    print(f"    This PC:        http://127.0.0.1:{config.PORT}")
+    if config.HOST in ("0.0.0.0", "::"):
+        lan = _lan_ip()
+        if lan:
+            print(f"    Other devices:  http://{lan}:{config.PORT}  (same Wi-Fi/network)")
+        print("    Binding to all interfaces — anyone on your network can reach it.")
+    print()
     uvicorn.run(app, host=config.HOST, port=config.PORT, log_level="info")
 
 

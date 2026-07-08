@@ -47,6 +47,25 @@ cd clipstudio
 That's it — `run.bat` / `run.sh` handle the virtual environment and
 dependencies automatically. Only Python + ffmpeg need to be preinstalled.
 
+## Open it from another device (phone / another PC)
+
+Run the **LAN launcher** instead of the normal one:
+
+```bash
+# Windows:   double-click run-lan.bat   (approve the firewall prompt once)
+# mac/linux: ./run-lan.sh
+```
+
+It binds to your whole network and prints a second URL like
+**`http://192.168.1.6:8790`**. Open that address in a browser on any phone or PC
+on the **same Wi-Fi / network**. (`run.bat` stays localhost-only.)
+
+Notes:
+- On Windows, `run-lan.bat` asks for admin once to open port **8790** in the
+  firewall. If you skip it, other devices can't connect.
+- No login/password — anyone on your network can use it, so use it on a trusted
+  home network, not public Wi-Fi.
+
 ---
 
 ## Features
